@@ -54,8 +54,10 @@ pub fn choose_idct_func(options: &DecoderOptions) -> IDCTPtr {
     {
         if options.use_avx2() {
             debug!("Using vector integer IDCT");
-            // use avx one
-            return crate::idct::avx2::idct_avx2;
+            return |a: &mut [i32; 64], b: &mut [i16], c: usize| {
+                // SAFETY: `options.use_avx2()` only returns true if avx2 is supported.
+                unsafe { avx2::idct_avx2(a,b,c) }
+            };
         }
     }
     #[cfg(target_arch = "aarch64")]
@@ -63,7 +65,10 @@ pub fn choose_idct_func(options: &DecoderOptions) -> IDCTPtr {
     {
         if options.use_neon() {
             debug!("Using vector integer IDCT");
-            return crate::idct::neon::idct_neon;
+            return |a: &mut [i32; 64], b: &mut [i16], c: usize| {
+                // SAFETY: `options.use_neon()` only returns true if neon is supported.
+                unsafe { neon::idct_neon(a,b,c) }
+            };
         }
     }
     debug!("Using scalar integer IDCT");
@@ -77,8 +82,10 @@ pub fn choose_idct_4x4_func(_options: &DecoderOptions) -> IDCTPtr {
     {
         if _options.use_avx2() {
             debug!("Using vector integer IDCT");
-            // use avx one
-            return crate::idct::avx2::idct_avx2_4x4;
+            return |a: &mut [i32; 64], b: &mut [i16], c: usize| {
+                // SAFETY: `options.use_avx2()` only returns true if avx2 is supported.
+                unsafe { avx2::idct_avx2_4x4(a,b,c) }
+            };
         }
     }
 
