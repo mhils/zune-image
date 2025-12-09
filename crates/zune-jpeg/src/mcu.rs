@@ -202,7 +202,7 @@ impl<T: ZByteReaderTrait> JpegDecoder<T> {
             for i in 0..mcu_height {
                 if stream.overread_by > 0 {
                     if let Some(v) = pixels.get_mut(pixels_written..) {
-                        v.fill(128)
+                        v.fill(128);
                     }
                     if self.options.strict_mode() {
                         return Err(DecodeErrors::FormatStatic("Premature end of buffer"));
@@ -273,7 +273,7 @@ impl<T: ZByteReaderTrait> JpegDecoder<T> {
                     McuContinuation::Terminate => {
                         warn!("Got terminate signal, will not process further");
                         if let Some(v) = pixels.get_mut(pixels_written..) {
-                            v.fill(128)
+                            v.fill(128);
                         }
                         return Ok(());
                     }

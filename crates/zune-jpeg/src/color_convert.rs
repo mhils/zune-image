@@ -78,7 +78,7 @@ pub fn choose_ycbcr_to_rgb_convert_func(
                 ColorSpace::RGB => return Some(ycbcr_to_rgb_avx2),
                 ColorSpace::RGBA => return Some(ycbcr_to_rgba_avx2),
                 _ => (), // fall through to scalar, which has more types
-            };
+            }
         }
     }
     #[cfg(all(feature = "neon", target_arch = "aarch64"))]
