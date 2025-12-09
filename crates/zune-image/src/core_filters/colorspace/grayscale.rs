@@ -8,7 +8,7 @@
 
 use crate::core_filters::colorspace::grayscale::scalar::{
     convert_rgb_to_grayscale_scalar, convert_rgb_to_grayscale_scalar_f32,
-    convert_rgb_to_grayscale_scalar_u16
+    convert_rgb_to_grayscale_scalar_u16,
 };
 
 mod avx2;

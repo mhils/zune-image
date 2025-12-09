@@ -55,14 +55,11 @@ pub mod ppm;
 pub mod psd;
 pub mod qoi;
 pub(crate) fn create_options_for_encoder(
-    options: Option<EncoderOptions>, image: &Image
+    options: Option<EncoderOptions>,
+    image: &Image,
 ) -> EncoderOptions {
     // choose if we take options from pre-configured , or we create default options
-    let start_options = if let Some(configured_opts) = options {
-        configured_opts
-    } else {
-        EncoderOptions::default()
-    };
+    let start_options = options.unwrap_or_default();
     let (width, height) = image.dimensions();
     // then set image configuration
     start_options
@@ -97,7 +94,7 @@ pub enum ImageFormat {
     /// Windows Bitmap Files
     BMP,
     /// Any unknown format
-    Unknown
+    Unknown,
 }
 
 impl ImageFormat {
@@ -117,23 +114,25 @@ impl ImageFormat {
     }
     pub fn decoder<'a, T>(&self, data: T) -> Result<Box<dyn DecoderTrait + 'a>, ImageErrors>
     where
-        T: ZByteReaderTrait + 'a
+        T: ZByteReaderTrait + 'a,
     {
         self.decoder_with_options(data, DecoderOptions::default())
     }
 
     pub fn decoder_with_options<'a, T>(
-        &self, data: T, options: DecoderOptions
+        &self,
+        data: T,
+        options: DecoderOptions,
     ) -> Result<Box<dyn DecoderTrait + 'a>, ImageErrors>
     where
-        T: ZByteReaderTrait + 'a
+        T: ZByteReaderTrait + 'a,
     {
         match self {
             ImageFormat::JPEG => {
                 #[cfg(feature = "jpeg")]
                 {
                     Ok(Box::new(zune_jpeg::JpegDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "jpeg"))]
@@ -146,7 +145,7 @@ impl ImageFormat {
                 #[cfg(feature = "png")]
                 {
                     Ok(Box::new(zune_png::PngDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "png"))]
@@ -158,7 +157,7 @@ impl ImageFormat {
                 #[cfg(feature = "ppm")]
                 {
                     Ok(Box::new(zune_ppm::PPMDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "ppm"))]
@@ -170,7 +169,7 @@ impl ImageFormat {
                 #[cfg(feature = "psd")]
                 {
                     Ok(Box::new(zune_psd::PSDDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "psd"))]
@@ -183,7 +182,7 @@ impl ImageFormat {
                 #[cfg(feature = "farbfeld")]
                 {
                     Ok(Box::new(zune_farbfeld::FarbFeldDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "farbfeld"))]
@@ -196,7 +195,7 @@ impl ImageFormat {
                 #[cfg(feature = "qoi")]
                 {
                     Ok(Box::new(zune_qoi::QoiDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "qoi"))]
@@ -208,7 +207,7 @@ impl ImageFormat {
                 #[cfg(feature = "hdr")]
                 {
                     Ok(Box::new(zune_hdr::HdrDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "hdr"))]
@@ -220,7 +219,7 @@ impl ImageFormat {
                 #[cfg(feature = "bmp")]
                 {
                     Ok(Box::new(zune_bmp::BmpDecoder::new_with_options(
-                        data, options
+                        data, options,
                     )))
                 }
                 #[cfg(not(feature = "bmp"))]
@@ -236,7 +235,7 @@ impl ImageFormat {
 
                     let reader = ZReader::new(data);
                     Ok(Box::new(codecs::jpeg_xl::JxlDecoder::try_new(
-                        reader, options
+                        reader, options,
                     )?))
                 }
                 #[cfg(not(feature = "jpeg-xl"))]
@@ -244,7 +243,7 @@ impl ImageFormat {
                     Err(ImageErrors::ImageDecoderNotIncluded(*self))
                 }
             }
-            ImageFormat::Unknown => Err(ImageErrors::ImageDecoderNotImplemented(*self))
+            ImageFormat::Unknown => Err(ImageErrors::ImageDecoderNotImplemented(*self)),
         }
     }
     /// Return true if an image format has an encoder that can convert the image
@@ -260,11 +259,14 @@ impl ImageFormat {
             ImageFormat::QOI => cfg!(feature = "qoi"),
             ImageFormat::JPEG_XL => cfg!(feature = "jpeg-xl"),
             ImageFormat::HDR => cfg!(feature = "hdr"),
-            _ => false
+            _ => false,
         }
     }
     pub fn encode<T: ZByteWriterTrait>(
-        &self, image: &Image, encoder_options: EncoderOptions, sink: T
+        &self,
+        image: &Image,
+        encoder_options: EncoderOptions,
+        sink: T,
     ) -> Result<usize, ImageErrors> {
         match self {
             ImageFormat::JPEG => {
@@ -321,13 +323,13 @@ impl ImageFormat {
             _ => {}
         }
         Err(ImageErrors::EncodeErrors(
-            ImgEncodeErrors::NoEncoderForFormat(*self)
+            ImgEncodeErrors::NoEncoderForFormat(*self),
         ))
     }
 
     pub fn guess_format<T>(bytes: T) -> Option<(ImageFormat, T)>
     where
-        T: ZByteReaderTrait
+        T: ZByteReaderTrait,
     {
         guess_format(bytes)
     }
@@ -404,7 +406,7 @@ impl ImageFormat {
                     None
                 }
             }
-            _ => None
+            _ => None,
         }
     }
 }
@@ -435,7 +437,7 @@ impl Image {
     /// image.save("hello.jpg").unwrap();
     /// ```
     pub fn save<P: AsRef<Path>>(&self, file: P) -> Result<(), ImageErrors> {
-        return if let Some(ext) = file.as_ref().extension() {
+        if let Some(ext) = file.as_ref().extension() {
             if let Some(format) = ImageFormat::encoder_for_extension(ext.to_string_lossy()) {
                 self.save_to(file, format)
             } else {
@@ -447,7 +449,7 @@ impl Image {
             let msg = format!("No extension for file {:?}", file.as_ref());
 
             Err(ImageErrors::EncodeErrors(ImgEncodeErrors::Generic(msg)))
-        };
+        }
     }
     /// Save an image using a specified format to a file
     ///
@@ -491,7 +493,7 @@ impl Image {
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(file)?
+                .open(file)?,
         );
         self.encode(format, &mut file)?;
         Ok(())
@@ -533,7 +535,7 @@ impl Image {
             // encode
         } else {
             Err(ImageErrors::EncodeErrors(
-                crate::errors::ImgEncodeErrors::NoEncoderForFormat(format)
+                crate::errors::ImgEncodeErrors::NoEncoderForFormat(format),
             ))
         }
     }
@@ -572,7 +574,9 @@ impl Image {
     /// let contents = image.write_with_encoder(encoder, &mut output).unwrap();
     /// ```
     pub fn write_with_encoder<T: ZByteWriterTrait>(
-        &self, mut encoder: impl EncoderTrait, sink: T
+        &self,
+        mut encoder: impl EncoderTrait,
+        sink: T,
     ) -> Result<usize, ImageErrors> {
         encoder.encode(self, sink)
     }
@@ -610,7 +614,8 @@ impl Image {
     /// let image = Image::open_with_options("/a/file.jpeg",options).unwrap();
     /// ```
     pub fn open_with_options<P: AsRef<Path>>(
-        file: P, options: DecoderOptions
+        file: P,
+        options: DecoderOptions,
     ) -> Result<Image, ImageErrors> {
         let reader = std::io::BufReader::new(std::fs::File::open(file)?);
         Self::read(reader, options)
@@ -632,7 +637,7 @@ impl Image {
     ///```
     pub fn read<T>(src: T, options: DecoderOptions) -> Result<Image, ImageErrors>
     where
-        T: ZByteReaderTrait
+        T: ZByteReaderTrait,
     {
         let decoder = ImageFormat::guess_format(src);
 
@@ -644,7 +649,7 @@ impl Image {
             Ok(image)
         } else {
             Err(ImageErrors::ImageDecoderNotImplemented(
-                ImageFormat::Unknown
+                ImageFormat::Unknown,
             ))
         }
     }
@@ -660,7 +665,9 @@ impl Image {
     ///  - The size of bytes written to sink or an error if it occurs
     ///
     pub fn encode<T: ZByteWriterTrait>(
-        &self, format: ImageFormat, sink: T
+        &self,
+        format: ImageFormat,
+        sink: T,
     ) -> Result<usize, ImageErrors> {
         self.encode_with_options(format, EncoderOptions::default(), sink)
     }
@@ -675,7 +682,10 @@ impl Image {
     ///  - The size of bytes written to sink or an error if it occurs
     ///
     fn encode_with_options<T: ZByteWriterTrait>(
-        &self, format: ImageFormat, encoder_options: EncoderOptions, sink: T
+        &self,
+        format: ImageFormat,
+        encoder_options: EncoderOptions,
+        sink: T,
     ) -> Result<usize, ImageErrors> {
         format.encode(self, encoder_options, sink)
     }
@@ -712,7 +722,7 @@ impl Image {
 /// - None: Indicates the format isn't known/understood by the library
 pub fn guess_format<T>(bytes: T) -> Option<(ImageFormat, T)>
 where
-    T: ZByteReaderTrait
+    T: ZByteReaderTrait,
 {
     let mut reader = ZReader::new(bytes);
     // stolen from imagers
@@ -734,9 +744,9 @@ where
         (b"#?RGBE\n", ImageFormat::HDR),
         (
             &[
-                0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A
+                0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A,
             ],
-            ImageFormat::JPEG_XL
+            ImageFormat::JPEG_XL,
         ),
         (&[0xFF, 0x0A], ImageFormat::JPEG_XL),
     ];

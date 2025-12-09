@@ -62,7 +62,8 @@ mod scalar;
 
 #[allow(unused_variables)]
 pub fn choose_ycbcr_to_rgb_convert_func(
-    type_need: ColorSpace, options: &DecoderOptions
+    type_need: ColorSpace,
+    options: &DecoderOptions,
 ) -> Option<ColorConvert16Ptr> {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     #[cfg(feature = "x86")]
@@ -76,8 +77,8 @@ pub fn choose_ycbcr_to_rgb_convert_func(
             match type_need {
                 ColorSpace::RGB => return Some(ycbcr_to_rgb_avx2),
                 ColorSpace::RGBA => return Some(ycbcr_to_rgba_avx2),
-                _ => () // fall through to scalar, which has more types
-            };
+                _ => (), // fall through to scalar, which has more types
+            }
         }
     }
     #[cfg(all(feature = "neon", target_arch = "aarch64"))]
@@ -87,8 +88,8 @@ pub fn choose_ycbcr_to_rgb_convert_func(
             match type_need {
                 ColorSpace::RGB => return Some(ycbcr_to_rgb_neon),
                 ColorSpace::RGBA => return Some(ycbcr_to_rgba_neon),
-                _ => () // fall through to scalar, which has more types
-            };
+                _ => (), // fall through to scalar, which has more types
+            }
         }
     }
     // when there is no x86 or we haven't returned by here, resort to scalar
@@ -97,6 +98,6 @@ pub fn choose_ycbcr_to_rgb_convert_func(
         ColorSpace::RGBA => Some(scalar::ycbcr_to_rgba_inner_16_scalar::<false>),
         ColorSpace::BGRA => Some(scalar::ycbcr_to_rgba_inner_16_scalar::<true>),
         ColorSpace::BGR => Some(scalar::ycbcr_to_rgb_inner_16_scalar::<true>),
-        _ => None
+        _ => None,
     };
 }

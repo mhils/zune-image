@@ -33,7 +33,7 @@ impl<T: io::BufRead + io::Seek> ZByteReaderTrait for T {
                 Ok(bytes) => {
                     bytes_read += bytes;
                 }
-                Err(e) => return Err(ZByteIoError::from(e))
+                Err(e) => return Err(ZByteIoError::from(e)),
             }
         }
 

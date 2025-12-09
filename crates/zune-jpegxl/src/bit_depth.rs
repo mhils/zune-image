@@ -136,7 +136,7 @@ impl JxlBitEncoder for UpTo8Bits {
 
     const KMIN_RAW_LENGTH: [u8; 20] = [0; 20];
     const KMAX_RAW_LENGTH: [u8; 20] = [
-        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 10, 255, 255, 255, 255, 255, 255, 255, 255
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 10, 255, 255, 255, 255, 255, 255, 255, 255,
     ];
 
     type Pixel = i16;

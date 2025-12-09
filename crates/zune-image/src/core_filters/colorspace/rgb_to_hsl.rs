@@ -69,13 +69,17 @@ fn hsl_to_rgb_inner(h: f32, s: f32, l: f32) -> [f32; 3] {
     if s == 0.0 {
         return [l, l, l];
     }
-    let m2 = if l <= 0.5 { l * (1.0 + s) } else { l + s - (l * s) };
+    let m2 = if l <= 0.5 {
+        l * (1.0 + s)
+    } else {
+        l + s - (l * s)
+    };
     let m1 = 2.0 * l - m2;
 
     [
         v(m1, m2, h + ONE_THIRD),
         v(m1, m2, h),
-        v(m1, m2, h - ONE_THIRD)
+        v(m1, m2, h - ONE_THIRD),
     ]
 }
 

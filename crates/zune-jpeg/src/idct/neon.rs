@@ -17,7 +17,7 @@
 //!
 //! 1. Test for zeroes
 //! > There is a shortcut method for idct  where when all AC values are zero, we can get the answer really quickly.
-//!  by scaling the 1/8th of the DCT coefficient of the block to the whole block and level shifting.
+//! > by scaling the 1/8th of the DCT coefficient of the block to the whole block and level shifting.
 //!
 //! 2. If above fails, we proceed to carry out IDCT as a two pass one dimensional algorithm.
 //! IT does two whole scans where it carries out IDCT on all items
@@ -35,7 +35,6 @@ use core::arch::aarch64::*;
 use crate::unsafe_utils::{transpose, YmmRegister};
 
 const SCALE_BITS: i32 = 512 + 65536 + (128 << 17);
-
 
 #[inline]
 #[target_feature(enable = "neon")]
@@ -58,9 +57,7 @@ unsafe fn condense_bottom_16(a: int32x4x2_t, b: int32x4x2_t) -> int16x8x2_t {
     unused_assignments,
     clippy::zero_prefixed_literal
 )]
-pub unsafe fn idct_neon(
-    in_vector: &mut [i32; 64], out_vector: &mut [i16], stride: usize
-) {
+pub unsafe fn idct_neon(in_vector: &mut [i32; 64], out_vector: &mut [i16], stride: usize) {
     let mut pos = 0;
 
     // load into registers
@@ -110,7 +107,7 @@ pub unsafe fn idct_neon(
                         .unwrap()
                         .as_mut_ptr()
                         .cast(),
-                    $value
+                    $value,
                 );
                 $pos += stride;
             };
@@ -188,13 +185,13 @@ pub unsafe fn idct_neon(
     // Process rows
     dct_pass!(512, 10);
     transpose(
-        &mut row0, &mut row1, &mut row2, &mut row3, &mut row4, &mut row5, &mut row6, &mut row7
+        &mut row0, &mut row1, &mut row2, &mut row3, &mut row4, &mut row5, &mut row6, &mut row7,
     );
 
     // process columns
     dct_pass!(SCALE_BITS, 17);
     transpose(
-        &mut row0, &mut row1, &mut row2, &mut row3, &mut row4, &mut row5, &mut row6, &mut row7
+        &mut row0, &mut row1, &mut row2, &mut row3, &mut row4, &mut row5, &mut row6, &mut row7,
     );
 
     // Pack i32 to i16's,
@@ -217,7 +214,7 @@ pub unsafe fn idct_neon(
                     .unwrap()
                     .as_mut_ptr()
                     .cast(),
-                b.0
+                b.0,
             );
             $index += stride;
             // second vector
@@ -227,7 +224,7 @@ pub unsafe fn idct_neon(
                     .unwrap()
                     .as_mut_ptr()
                     .cast(),
-                b.1
+                b.1,
             );
             $index += stride;
         };
@@ -246,8 +243,8 @@ unsafe fn clamp_neon(reg: int16x8_t) -> int16x8_t {
     let max_s = vdupq_n_s16(255);
 
     let max_v = vmaxq_s16(reg, min_s); //max(a,0)
-    let min_v = vminq_s16(max_v, max_s); //min(max(a,0),255)
-    min_v
+                                       //min(max(a,0),255)
+    vminq_s16(max_v, max_s)
 }
 
 #[inline]
@@ -274,7 +271,7 @@ mod test {
             assert_eq!(
                 result,
                 [0, 0, 0, 4, 255, 255, 255, 240, 0, 255, 2, 3, 4, 5, 6, 7]
-            )
+            );
         }
     }
 }

@@ -6,15 +6,15 @@ use crate::bytestream::ZByteReaderTrait;
 /// `std::io::Cursor` is available in std environments, but we also need support
 /// for `no_std` environments so this serves as a drop in replacement
 pub struct ZCursor<T: AsRef<[u8]>> {
-    stream:   T,
-    position: usize
+    stream: T,
+    position: usize,
 }
 
 impl<T: AsRef<[u8]>> ZCursor<T> {
     pub fn new(buffer: T) -> ZCursor<T> {
         ZCursor {
-            stream:   buffer,
-            position: 0
+            stream: buffer,
+            position: 0,
         }
     }
 }
@@ -123,14 +123,14 @@ impl<T: AsRef<[u8]>> ZByteReaderTrait for ZCursor<T> {
                 return Ok(n);
             }
             ZSeekFrom::End(n) => (self.stream.as_ref().len(), n as isize),
-            ZSeekFrom::Current(n) => (self.position, n as isize)
+            ZSeekFrom::Current(n) => (self.position, n as isize),
         };
         match base_pos.checked_add_signed(offset) {
             Some(n) => {
                 self.position = n;
                 Ok(self.position as u64)
             }
-            None => Err(ZByteIoError::SeekError("Negative seek"))
+            None => Err(ZByteIoError::SeekError("Negative seek")),
         }
     }
 
@@ -149,7 +149,7 @@ impl<T: AsRef<[u8]>> ZByteReaderTrait for ZCursor<T> {
         match self.stream.as_ref().get(start..end) {
             None => {
                 return Err(ZByteIoError::Generic(
-                    "Somehow read remaining couldn't satisfy it's invariants"
+                    "Somehow read remaining couldn't satisfy it's invariants",
                 ))
             }
             Some(e) => {
@@ -170,17 +170,14 @@ impl<T: AsRef<[u8]>> std::io::Seek for ZCursor<T> {
                 return Ok(n);
             }
             std::io::SeekFrom::End(n) => (self.stream.as_ref().len(), n as isize),
-            std::io::SeekFrom::Current(n) => (self.position, n as isize)
+            std::io::SeekFrom::Current(n) => (self.position, n as isize),
         };
         match base_pos.checked_add_signed(offset) {
             Some(n) => {
                 self.position = n;
                 Ok(self.position as u64)
             }
-            None => Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Negative seek"
-            ))
+            None => Err(std::io::Error::other("Negative seek")),
         }
     }
 }

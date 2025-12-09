@@ -81,7 +81,7 @@ fn test_animation() {
             &pix,
             background.as_deref(),
             &mut output,
-            None
+            None,
         )
         .unwrap();
 
@@ -127,7 +127,7 @@ fn test_animation_2() {
             &pix,
             background.as_deref(),
             &mut output,
-            None
+            None,
         )
         .unwrap();
 

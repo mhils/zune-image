@@ -38,7 +38,7 @@ use crate::utils::execute_on;
 /// This operation is internally multithreaded, where supported
 #[derive(Default)]
 pub struct Gamma {
-    value: f32
+    value: f32,
 }
 
 impl Gamma {
@@ -68,7 +68,7 @@ impl OperationsTrait for Gamma {
                 BitType::U8 => gamma(channel.reinterpret_as_mut::<u8>()?, self.value, max_value),
                 BitType::F32 => {
                     // for floats, we can't use LUT tables, the scope is too big
-                    let value_inv = 1.0 / max_value as f32;
+                    let value_inv = 1.0 / f32::from(max_value);
 
                     channel
                         .reinterpret_as_mut::<f32>()?
@@ -100,7 +100,7 @@ impl OperationsTrait for Gamma {
 )]
 pub fn gamma<T>(pixels: &mut [T], value: f32, max_value: u16)
 where
-    T: Copy + NumOps<T> + Default
+    T: Copy + NumOps<T> + Default,
 {
     // build a lookup table which we use for gamma correction in the next stage
     // it is faster to do it this way as calling pow in the inner loop is slow

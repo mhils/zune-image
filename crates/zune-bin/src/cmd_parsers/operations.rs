@@ -34,7 +34,9 @@ use zune_imageprocs::transpose::Transpose;
 use crate::cmd_args::arg_parsers::IColorSpace;
 
 pub fn parse_options(
-    workflow: &mut Pipeline, argument: &str, args: &ArgMatches
+    workflow: &mut Pipeline,
+    argument: &str,
+    args: &ArgMatches,
 ) -> Result<(), String> {
     if argument == "flip" {
         debug!("Added flip operation");
