@@ -154,21 +154,7 @@ mod tests {
     }
 
     fn idct_fnc() -> IDCTPtr {
-        #[cfg(feature = "neon")]
-        #[cfg(target_arch = "aarch64")]
-        {
-            use crate::idct::neon::idct_neon;
-            return idct_neon;
-        }
-
-        #[cfg(feature = "x86")]
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        {
-            use crate::idct::avx2::idct_avx2;
-            return idct_avx2;
-        }
-
-        idct_int
+        choose_idct_func(&DecoderOptions::new_fast())
     }
 
     #[test]
