@@ -62,7 +62,7 @@ impl OperationsTrait for Transpose {
                         channel.reinterpret_as::<u8>()?,
                         out_channel.reinterpret_as_mut::<u8>()?,
                         width,
-                        height
+                        height,
                     );
                 }
                 BitType::U16 => {
@@ -70,7 +70,7 @@ impl OperationsTrait for Transpose {
                         channel.reinterpret_as::<u16>()?,
                         out_channel.reinterpret_as_mut::<u16>()?,
                         width,
-                        height
+                        height,
                     );
                 }
                 BitType::F32 => {
@@ -78,13 +78,13 @@ impl OperationsTrait for Transpose {
                         channel.reinterpret_as()?,
                         out_channel.reinterpret_as_mut()?,
                         width,
-                        height
+                        height,
                     );
                 }
                 d => {
                     return Err(ImageErrors::ImageOperationNotImplemented(self.name(), d));
                 }
-            };
+            }
             *channel = out_channel;
             Ok(())
         };
@@ -192,7 +192,10 @@ pub fn transpose_u32(in_matrix: &[u32], out_matrix: &mut [u32], width: usize, he
 }
 
 pub fn transpose_generic<T: Default + Copy>(
-    in_matrix: &[T], out_matrix: &mut [T], width: usize, height: usize
+    in_matrix: &[T],
+    out_matrix: &mut [T],
+    width: usize,
+    height: usize,
 ) {
     transpose_scalar(in_matrix, out_matrix, width, height);
 }

@@ -43,7 +43,6 @@ fn decode_jpeg_mozjpeg(buf: &[u8]) -> Vec<[u8; 3]> {
     p
 }
 
-
 fn decode_no_samp(c: &mut Criterion) {
     let a = sample_path().join("test-images/jpeg/benchmarks/speed_bench.jpg");
 
@@ -59,13 +58,11 @@ fn decode_no_samp(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(data.as_slice())))
     });
-
-
 }
 
 fn decode_h_samp(c: &mut Criterion) {
     let data = read(
-        sample_path().join("test-images/jpeg/benchmarks/speed_bench_horizontal_subsampling.jpg")
+        sample_path().join("test-images/jpeg/benchmarks/speed_bench_horizontal_subsampling.jpg"),
     )
     .unwrap();
     let mut group = c.benchmark_group("jpeg: Horizontal Sub Sampling");
@@ -78,13 +75,11 @@ fn decode_h_samp(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(data.as_slice())))
     });
-
-
 }
 
 fn decode_v_samp(c: &mut Criterion) {
     let data = read(
-        sample_path().join("test-images/jpeg/benchmarks/speed_bench_vertical_subsampling.jpg")
+        sample_path().join("test-images/jpeg/benchmarks/speed_bench_vertical_subsampling.jpg"),
     )
     .unwrap();
     let mut group = c.benchmark_group("jpeg: Vertical sub sampling");
@@ -97,8 +92,6 @@ fn decode_v_samp(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(data.as_slice())))
     });
-
-
 }
 
 fn decode_hv_samp(c: &mut Criterion) {
@@ -115,8 +108,6 @@ fn decode_hv_samp(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(data.as_slice())))
     });
-
-
 }
 
 fn decode_jpeg_grayscale(buf: &[u8]) -> Vec<u8> {
@@ -179,8 +170,6 @@ fn decode_no_samp_prog(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(data.as_slice())))
     });
-
-
 }
 
 fn decode_h_samp_prog(c: &mut Criterion) {
@@ -194,8 +183,6 @@ fn decode_h_samp_prog(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(x.as_slice())))
     });
-
-
 }
 
 fn decode_v_samp_prog(c: &mut Criterion) {
@@ -211,8 +198,6 @@ fn decode_v_samp_prog(c: &mut Criterion) {
     group.bench_function("mozjpeg", |b| {
         b.iter(|| black_box(decode_jpeg_mozjpeg(x.as_slice())))
     });
-
-
 }
 
 fn decode_hv_samp_prog(c: &mut Criterion) {

@@ -16,8 +16,7 @@ pub enum ColorProfiles {
     AdobeRgb,
     DisplayP3,
     Bt2020,
-    DciP3
-
+    DciP3,
 }
 
 /// ColorTransform
@@ -28,13 +27,14 @@ pub enum ColorProfiles {
 /// profile
 #[derive(Debug, Clone, Copy)]
 pub struct ColorTransform {
-    color: ColorProfiles
+    color: ColorProfiles,
 }
 
 impl ColorTransform {
+    #[must_use]
     pub fn new(color_profiles: ColorProfiles) -> Self {
         Self {
-            color: color_profiles
+            color: color_profiles,
         }
     }
 }
@@ -59,8 +59,6 @@ impl OperationsTrait for ColorTransform {
                 ColorProfiles::DisplayP3 => ColorProfile::new_display_p3(),
                 ColorProfiles::Bt2020 => ColorProfile::new_bt2020(),
                 ColorProfiles::DciP3 => ColorProfile::new_dci_p3(),
-
-
             };
             let img_depth = image.depth();
 
@@ -75,7 +73,7 @@ impl OperationsTrait for ColorTransform {
                 ColorSpace::Luma => Layout::Gray,
                 _ => {
                     return Err(ImageErrors::GenericStr(
-                        "Unsupported colorspace for transform"
+                        "Unsupported colorspace for transform",
                     ))
                 }
             };
@@ -87,7 +85,7 @@ impl OperationsTrait for ColorTransform {
                             layout_value,
                             &dest_color_profile,
                             layout_value,
-                            TransformOptions::default()
+                            TransformOptions::default(),
                         )
                         .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -103,7 +101,7 @@ impl OperationsTrait for ColorTransform {
                         transform
                             .transform(
                                 &input_interleaved[..bytes_written],
-                                &mut output_interleaved[..bytes_written]
+                                &mut output_interleaved[..bytes_written],
                             )
                             .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -112,7 +110,7 @@ impl OperationsTrait for ColorTransform {
                             &output_interleaved[..bytes_written],
                             colorspace,
                             frame.numerator(),
-                            frame.denominator()
+                            frame.denominator(),
                         );
 
                         *frame = new_frame;
@@ -124,7 +122,7 @@ impl OperationsTrait for ColorTransform {
                             layout_value,
                             &dest_color_profile,
                             layout_value,
-                            TransformOptions::default()
+                            TransformOptions::default(),
                         )
                         .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -139,7 +137,7 @@ impl OperationsTrait for ColorTransform {
                         transform
                             .transform(
                                 &input_interleaved[..bytes_written],
-                                &mut output_interleaved[..bytes_written]
+                                &mut output_interleaved[..bytes_written],
                             )
                             .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -148,7 +146,7 @@ impl OperationsTrait for ColorTransform {
                             &output_interleaved[..bytes_written],
                             colorspace,
                             frame.numerator(),
-                            frame.denominator()
+                            frame.denominator(),
                         );
 
                         *frame = new_frame;
@@ -160,7 +158,7 @@ impl OperationsTrait for ColorTransform {
                             layout_value,
                             &dest_color_profile,
                             layout_value,
-                            TransformOptions::default()
+                            TransformOptions::default(),
                         )
                         .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -175,7 +173,7 @@ impl OperationsTrait for ColorTransform {
                         transform
                             .transform(
                                 &input_interleaved[..bytes_written],
-                                &mut output_interleaved[..bytes_written]
+                                &mut output_interleaved[..bytes_written],
                             )
                             .map_err(|e| ImageErrors::GenericString(e.to_string()))?;
 
@@ -184,7 +182,7 @@ impl OperationsTrait for ColorTransform {
                             &output_interleaved[..bytes_written],
                             colorspace,
                             frame.numerator(),
-                            frame.denominator()
+                            frame.denominator(),
                         );
 
                         *frame = new_frame;
@@ -194,7 +192,7 @@ impl OperationsTrait for ColorTransform {
                 _ => {
                     return Err(ImageErrors::ImageOperationNotImplemented(
                         self.name(),
-                        image.depth().bit_type()
+                        image.depth().bit_type(),
                     ))
                 }
             }
@@ -214,6 +212,5 @@ mod tests {
     #[test]
     fn test_cms() {
         // TODO: Add a valid test case
-
     }
 }

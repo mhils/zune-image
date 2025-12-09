@@ -99,7 +99,7 @@ fn bicubic_function(y0: isize, src_y: f32) -> [f32; 4] {
         return bicubic_kernel_simd(y0, src_y);
     }
     let yy0 = y0 + -1;
-    let yy1 = y0 + 0;
+    let yy1 = y0;
     let yy2 = y0 + 1;
     let yy3 = y0 + 2;
 
@@ -110,11 +110,15 @@ fn bicubic_function(y0: isize, src_y: f32) -> [f32; 4] {
     return bicubic_scalar([dy0, dy1, dy2, dy3]);
 }
 pub fn bicubic_resample<T>(
-    input: &[T], output: &mut [T], input_width: usize, input_height: usize, new_width: usize,
-    new_height: usize
+    input: &[T],
+    output: &mut [T],
+    input_width: usize,
+    input_height: usize,
+    new_width: usize,
+    new_height: usize,
 ) where
     T: Copy + NumOps<T>,
-    f32: std::convert::From<T>
+    f32: std::convert::From<T>,
 {
     let scale_y = input_height as f32 / new_height as f32;
     let scale_x = input_width as f32 / new_width as f32;
@@ -200,8 +204,11 @@ pub fn bicubic_resample<T>(
                         }
                     }
                 }
-                output_stride[x] =
-                    if weight_sum > 0.0 { T::from_f32(sum / weight_sum) } else { T::from_f32(0.0) };
+                output_stride[x] = if weight_sum > 0.0 {
+                    T::from_f32(sum / weight_sum)
+                } else {
+                    T::from_f32(0.0)
+                };
             }
         }
     }

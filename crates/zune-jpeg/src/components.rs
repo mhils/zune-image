@@ -30,7 +30,7 @@ pub type UpSampler = fn(
     in_near: &[i16],
     in_far: &[i16],
     scratch_space: &mut [i16],
-    output: &mut [i16]
+    output: &mut [i16],
 );
 
 /// Component Data from start of frame
@@ -76,7 +76,7 @@ pub(crate) struct Components {
     pub y: usize,
     pub sample_ratio: SampleRatios,
     // a very annoying bug
-    pub fix_an_annoying_bug: usize
+    pub fix_an_annoying_bug: usize,
 }
 
 impl Components {
@@ -142,11 +142,7 @@ impl Components {
             return Err(DecodeErrors::Format("Vertical sample is zero".to_string()));
         }
         trace!(
-            "Component ID:{:?} \tHS:{} VS:{} QT:{}",
-            id,
-            horizontal_sample,
-            vertical_sample,
-            quantization_table_number
+            "Component ID:{id:?} \tHS:{horizontal_sample} VS:{vertical_sample} QT:{quantization_table_number}"
         );
 
         Ok(Components {
@@ -174,7 +170,7 @@ impl Components {
             y: 0,
             w2: 0,
             sample_ratio: SampleRatios::None,
-            fix_an_annoying_bug: 1
+            fix_an_annoying_bug: 1,
         })
     }
     /// Setup space for upsampling
@@ -207,7 +203,7 @@ pub enum ComponentID {
     /// Red chrominance
     Cr,
     /// Q or fourth component
-    Q
+    Q,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -216,7 +212,7 @@ pub enum SampleRatios {
     V,
     H,
     Generic(usize, usize),
-    None
+    None,
 }
 
 impl SampleRatios {
@@ -225,7 +221,7 @@ impl SampleRatios {
             SampleRatios::HV => 4,
             SampleRatios::V | SampleRatios::H => 2,
             SampleRatios::Generic(a, b) => a * b,
-            SampleRatios::None => 1
+            SampleRatios::None => 1,
         }
     }
 }

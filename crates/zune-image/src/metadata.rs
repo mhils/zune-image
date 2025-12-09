@@ -24,7 +24,7 @@ mod exif;
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum AlphaState {
     PreMultiplied,
-    NonPreMultiplied
+    NonPreMultiplied,
 }
 
 /// Image metadata
@@ -36,18 +36,17 @@ pub enum AlphaState {
 pub struct ImageMetadata {
     // REMEMBER: If you add a field here add it's serialization
     // to mod file
-    pub(crate) color_trc:     Option<ColorCharacteristics>,
+    pub(crate) color_trc: Option<ColorCharacteristics>,
     pub(crate) default_gamma: Option<f32>,
-    pub(crate) width:         usize,
-    pub(crate) height:        usize,
-    pub(crate) colorspace:    ColorSpace,
-    pub(crate) depth:         BitDepth,
-    pub(crate) format:        Option<ImageFormat>,
-    pub(crate) alpha:         AlphaState,
+    pub(crate) width: usize,
+    pub(crate) height: usize,
+    pub(crate) colorspace: ColorSpace,
+    pub(crate) depth: BitDepth,
+    pub(crate) format: Option<ImageFormat>,
+    pub(crate) alpha: AlphaState,
     #[cfg(feature = "metadata")]
-    pub(crate) exif:          Option<Vec<::exif::Field>>,
-    pub(crate) icc_chunk:     Option<Vec<u8>>,
-
+    pub(crate) exif: Option<Vec<::exif::Field>>,
+    pub(crate) icc_chunk: Option<Vec<u8>>,
 }
 
 impl Default for ImageMetadata {
@@ -64,7 +63,7 @@ impl Default for ImageMetadata {
             #[cfg(feature = "metadata")]
             exif: None,
 
-            icc_chunk: None
+            icc_chunk: None,
         }
     }
 }
@@ -77,7 +76,7 @@ impl ImageMetadata {
     #[cfg(feature = "metadata")]
     #[cfg_attr(feature = "docs", doc(cfg(feature = "metadata")))]
     pub const fn exif(&self) -> Option<&Vec<::exif::Field>> {
-        return self.exif.as_ref();
+        self.exif.as_ref()
     }
 
     /// Return a mutable reference to the exif metadata of an image or none if it
@@ -87,7 +86,7 @@ impl ImageMetadata {
     #[cfg_attr(feature = "docs", doc(cfg(feature = "metadata")))]
 
     pub fn exif_mut(&mut self) -> Option<&mut Vec<::exif::Field>> {
-        return self.exif.as_mut();
+        self.exif.as_mut()
     }
     /// Get image dimensions as a tuple of width and height
     ///  

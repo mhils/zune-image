@@ -22,7 +22,9 @@ use zune_imageprocs::unsharpen::Unsharpen;
 //use zune_opencl::ocl_sobel::OclSobel;
 
 pub fn parse_options(
-    workflow: &mut Pipeline, argument: &str, args: &ArgMatches
+    workflow: &mut Pipeline,
+    argument: &str,
+    args: &ArgMatches,
 ) -> Result<(), String> {
     if argument == "box-blur" {
         let radius = *args.get_one::<usize>(argument).unwrap();
@@ -87,7 +89,7 @@ pub fn parse_options(
             "adobe-rgb" => ColorProfiles::AdobeRgb,
             "display-p3" => ColorProfiles::DisplayP3,
             "bt-2020" => ColorProfiles::DisplayP3,
-            _ => Err(format!("Unknown color profile: {}", value))?
+            _ => Err(format!("Unknown color profile: {}", value))?,
         };
         debug!("Added color transform operation");
 

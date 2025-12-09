@@ -146,10 +146,7 @@ pub trait OperationsTrait: Send + Sync {
         // Confirm colorspace
         let colorspace = image.colorspace();
 
-        let supported = self
-            .supported_colorspaces()
-            .iter()
-            .any(|x| *x == colorspace);
+        let supported = self.supported_colorspaces().contains(&colorspace);
 
         if !supported {
             match colorspace {
@@ -165,7 +162,7 @@ pub trait OperationsTrait: Send + Sync {
                     return Err(ImageErrors::UnsupportedColorspace(
                         colorspace,
                         self.name(),
-                        self.supported_colorspaces()
+                        self.supported_colorspaces(),
                     ));
                 }
             }
@@ -177,18 +174,17 @@ pub trait OperationsTrait: Send + Sync {
         // check we support the bit depth
         let bit_type = image.metadata.depth().bit_type();
 
-        let supported = self.supported_types().iter().any(|x| *x == bit_type);
+        let supported = self.supported_types().contains(&bit_type);
 
         if !supported {
             return Err(ImageErrors::OperationsError(
-                ImageOperationsErrors::UnsupportedType(self.name(), bit_type)
+                ImageOperationsErrors::UnsupportedType(self.name(), bit_type),
             ));
         }
 
         confirm_invariants(image)?;
 
-        self.execute_impl(image)
-            .map_err(<ImageErrors as Into<ImageErrors>>::into)?;
+        self.execute_impl(image)?;
 
         confirm_invariants(image)?;
 
@@ -242,7 +238,7 @@ fn confirm_invariants(image: &Image) -> Result<(), ImageErrors> {
         if channel.len() != expected_length {
             return Err(ImageErrors::DimensionsMisMatch(
                 expected_length,
-                channel.len()
+                channel.len(),
             ));
         }
     }
@@ -274,7 +270,9 @@ pub trait EncoderTrait {
     ///
     /// [encode]: EncoderTrait::encode
     fn encode_inner<T: ZByteWriterTrait>(
-        &mut self, image: &Image, sink: T
+        &mut self,
+        image: &Image,
+        sink: T,
     ) -> Result<usize, ImageErrors>;
 
     /// Return all colorspaces supported by this encoder.
@@ -307,7 +305,9 @@ pub trait EncoderTrait {
     /// is recommended to have the image in a format that can be encoded
     /// directly to prevent such
     fn encode<T: ZByteWriterTrait>(
-        &mut self, image: &Image, sink: T
+        &mut self,
+        image: &Image,
+        sink: T,
     ) -> Result<usize, ImageErrors> {
         // confirm things hold themselves
         confirm_invariants(image)?;
@@ -389,8 +389,8 @@ pub trait EncoderTrait {
         let data = self.encode(image, &mut sink)?;
 
         Ok(EncodeResult {
-            data:   vec![],
-            format: self.format()
+            data: vec![],
+            format: self.format(),
         })
     }
     /// Get supported bit-depths for this image

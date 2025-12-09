@@ -77,7 +77,7 @@ pub struct Aligned16<T: ?Sized>(pub T);
 
 impl<T> Default for Aligned16<T>
 where
-    T: Default
+    T: Default,
 {
     fn default() -> Self {
         Aligned16(T::default())
@@ -91,7 +91,7 @@ pub struct Aligned32<T: ?Sized>(pub T);
 
 impl<T> Default for Aligned32<T>
 where
-    T: Default
+    T: Default,
 {
     fn default() -> Self {
         Aligned32(T::default())
@@ -117,7 +117,7 @@ pub enum SOFMarkers {
     /// Progressive DCT, arithmetic coding,
     ProgressiveDctArithmetic,
     /// Lossless ( sequential), arithmetic coding
-    LosslessArithmetic
+    LosslessArithmetic,
 }
 
 impl Default for SOFMarkers {
@@ -164,7 +164,7 @@ impl SOFMarkers {
             START_OF_FRAME_LOS_SEQ_AR => Some(Self::LosslessArithmetic),
             START_OF_FRAME_EXT_SEQ => Some(Self::ExtendedSequentialHuffman),
             START_OF_FRAME_EXT_AR => Some(Self::ExtendedSequentialDctArithmetic),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -182,7 +182,7 @@ impl fmt::Debug for SOFMarkers {
                 write!(f, "Extended sequential DCT, arithmetic coding")
             }
             Self::ProgressiveDctArithmetic => write!(f, "Progressive DCT, arithmetic coding"),
-            Self::LosslessArithmetic => write!(f, "Lossless (sequential) arithmetic coding")
+            Self::LosslessArithmetic => write!(f, "Lossless (sequential) arithmetic coding"),
         }
     }
 }
@@ -192,7 +192,7 @@ impl fmt::Debug for SOFMarkers {
 /// This modifies the components in place setting up details needed by other
 /// parts fo the decoder.
 pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
-    img: &mut JpegDecoder<T>
+    img: &mut JpegDecoder<T>,
 ) -> Result<(), DecodeErrors> {
     let img_width = img.width();
     let img_height = img.height();
@@ -238,7 +238,7 @@ pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
                 ))
             })?;
 
-        let x = (usize::from(img_width) * component.horizontal_sample + img.h_max - 1) / img.h_max;
+        let x = (usize::from(img_width) * component.horizontal_sample).div_ceil(img.h_max);
         let y = (usize::from(img_height) * component.horizontal_sample + img.h_max - 1) / img.v_max;
         component.x = x;
         component.w2 = img.mcu_x * component.horizontal_sample * 8;
@@ -291,7 +291,7 @@ pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
         fill_default_mjpeg_tables(
             img.is_progressive,
             &mut img.dc_huffman_tables,
-            &mut img.ac_huffman_tables
+            &mut img.ac_huffman_tables,
         );
     }
 
@@ -306,7 +306,7 @@ pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
             // it as YCbCr
             // So I will match that to match existing ones
             warn!("Treating YCCK colorspace as YCbCr as component length does not match");
-            img.input_colorspace = ColorSpace::YCbCr
+            img.input_colorspace = ColorSpace::YCbCr;
         } else {
             // Note, translated this to a warning to handle valid images of the sort
             // See https://github.com/etemesi254/zune-image/issues/288 where there
@@ -316,23 +316,7 @@ pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
             //
             // djpeg fails to render an image from that also probably because it does not
             // understand the expected format.
-            if !img.options.strict_mode() {
-                warn!(
-                    "Expected {} number of components but found {}",
-                    img.input_colorspace.num_components(),
-                    img.components.len()
-                );
-                warn!("Defaulting to multisample to decode");
-
-                // N/B: We do not post process the color of such, treating it as multiband
-                // is the best option since I am not aware of grayscale+alpha which is the most common
-                // two band format in jpeg.
-                if img.components.len() > 0 {
-                    img.input_colorspace = ColorSpace::MultiBand(
-                        NonZeroU32::new(img.components.len() as u32).unwrap()
-                    );
-                }
-            } else {
+            if img.options.strict_mode() {
                 let msg = format!(
                     "Expected {} number of components but found {}",
                     img.input_colorspace.num_components(),
@@ -340,6 +324,20 @@ pub(crate) fn setup_component_params<T: ZByteReaderTrait>(
                 );
 
                 return Err(DecodeErrors::Format(msg));
+            }
+            warn!(
+                "Expected {} number of components but found {}",
+                img.input_colorspace.num_components(),
+                img.components.len()
+            );
+            warn!("Defaulting to multisample to decode");
+
+            // N/B: We do not post process the color of such, treating it as multiband
+            // is the best option since I am not aware of grayscale+alpha which is the most common
+            // two band format in jpeg.
+            if !img.components.is_empty() {
+                img.input_colorspace =
+                    ColorSpace::MultiBand(NonZeroU32::new(img.components.len() as u32).unwrap());
             }
         }
     }
@@ -363,11 +361,11 @@ pub fn calculate_padded_width(actual_width: usize, sub_sample: SampleRatios) -> 
     match sub_sample {
         SampleRatios::None | SampleRatios::V => {
             // None+V sends one MCU row, so that's a simple calculation
-            ((actual_width + 7) / 8) * 8
+            actual_width.div_ceil(8) * 8
         }
         SampleRatios::H | SampleRatios::HV => {
             // sends two rows, width can be expanded by up to 15 more bytes
-            ((actual_width + 15) / 16) * 16
+            actual_width.div_ceil(16) * 16
         }
         SampleRatios::Generic(h, _) => {
             ((actual_width + ((h * 8).saturating_sub(1))) / (h * 8)) * (h * 8)
@@ -384,8 +382,9 @@ pub fn calculate_padded_width(actual_width: usize, sub_sample: SampleRatios) -> 
 //  segment to them, or else the decoder won't have any idea how to decompress the data.
 //  The exact table necessary is given in the OpenDML spec.""
 pub fn fill_default_mjpeg_tables(
-    is_progressive: bool, dc_huffman_tables: &mut [Option<HuffmanTable>],
-    ac_huffman_tables: &mut [Option<HuffmanTable>]
+    is_progressive: bool,
+    dc_huffman_tables: &mut [Option<HuffmanTable>],
+    ac_huffman_tables: &mut [Option<HuffmanTable>],
 ) {
     // Section K.3.3
     trace!("Filling with default mjpeg tables");
@@ -396,15 +395,15 @@ pub fn fill_default_mjpeg_tables(
             HuffmanTable::new_unfilled(
                 &[
                     0x00, 0x00, 0x01, 0x05, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00
+                    0x00, 0x00, 0x00, 0x00,
                 ],
                 &[
-                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
                 ],
                 true,
-                is_progressive
+                is_progressive,
             )
-            .unwrap()
+            .unwrap(),
         );
     }
     if dc_huffman_tables[1].is_none() {
@@ -413,15 +412,15 @@ pub fn fill_default_mjpeg_tables(
             HuffmanTable::new_unfilled(
                 &[
                     0x00, 0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00,
-                    0x00, 0x00, 0x00, 0x00
+                    0x00, 0x00, 0x00, 0x00,
                 ],
                 &[
-                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
                 ],
                 true,
-                is_progressive
+                is_progressive,
             )
-            .unwrap()
+            .unwrap(),
         );
     }
     if ac_huffman_tables[0].is_none() {
@@ -430,7 +429,7 @@ pub fn fill_default_mjpeg_tables(
             HuffmanTable::new_unfilled(
                 &[
                     0x00, 0x00, 0x02, 0x01, 0x03, 0x03, 0x02, 0x04, 0x03, 0x05, 0x05, 0x04, 0x04,
-                    0x00, 0x00, 0x01, 0x7D
+                    0x00, 0x00, 0x01, 0x7D,
                 ],
                 &[
                     0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06, 0x13,
@@ -445,12 +444,12 @@ pub fn fill_default_mjpeg_tables(
                     0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0xB9, 0xBA, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
                     0xC8, 0xC9, 0xCA, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xE1,
                     0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xF1, 0xF2, 0xF3, 0xF4,
-                    0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA
+                    0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA,
                 ],
                 false,
-                is_progressive
+                is_progressive,
             )
-            .unwrap()
+            .unwrap(),
         );
     }
     if ac_huffman_tables[1].is_none() {
@@ -459,7 +458,7 @@ pub fn fill_default_mjpeg_tables(
             HuffmanTable::new_unfilled(
                 &[
                     0x00, 0x00, 0x02, 0x01, 0x02, 0x04, 0x04, 0x03, 0x04, 0x07, 0x05, 0x04, 0x04,
-                    0x00, 0x01, 0x02, 0x77
+                    0x00, 0x01, 0x02, 0x77,
                 ],
                 &[
                     0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31, 0x06, 0x12, 0x41, 0x51,
@@ -474,12 +473,12 @@ pub fn fill_default_mjpeg_tables(
                     0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0xB9, 0xBA, 0xC2, 0xC3, 0xC4, 0xC5,
                     0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9,
                     0xDA, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xF2, 0xF3, 0xF4,
-                    0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA
+                    0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA,
                 ],
                 false,
-                is_progressive
+                is_progressive,
             )
-            .unwrap()
+            .unwrap(),
         );
     }
 }

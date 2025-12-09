@@ -10,7 +10,7 @@ use zune_core::options::EncoderOptions;
 
 use crate::constants::{
     QOI_HEADER_SIZE, QOI_MAGIC, QOI_OP_DIFF, QOI_OP_INDEX, QOI_OP_LUMA, QOI_OP_RGB, QOI_OP_RGBA,
-    QOI_OP_RUN, QOI_PADDING
+    QOI_OP_RUN, QOI_PADDING,
 };
 use crate::QoiEncodeErrors;
 
@@ -42,9 +42,9 @@ const SUPPORTED_COLORSPACES: [ColorSpace; 2] = [ColorSpace::RGB, ColorSpace::RGB
 /// ```
 pub struct QoiEncoder<'a> {
     // raw pixels, in RGB or RBGA
-    pixel_data:            &'a [u8],
-    options:               EncoderOptions,
-    color_characteristics: ColorCharacteristics
+    pixel_data: &'a [u8],
+    options: EncoderOptions,
+    color_characteristics: ColorCharacteristics,
 }
 
 impl<'a> QoiEncoder<'a> {
@@ -56,9 +56,9 @@ impl<'a> QoiEncoder<'a> {
     #[allow(clippy::redundant_field_names)]
     pub const fn new(data: &'a [u8], options: EncoderOptions) -> QoiEncoder<'a> {
         QoiEncoder {
-            pixel_data:            data,
-            options:               options,
-            color_characteristics: ColorCharacteristics::sRGB
+            pixel_data: data,
+            options: options,
+            color_characteristics: ColorCharacteristics::sRGB,
         }
     }
     pub fn set_color_characteristics(&mut self, characteristics: ColorCharacteristics) {
@@ -75,7 +75,8 @@ impl<'a> QoiEncoder<'a> {
             + QOI_PADDING
     }
     fn encode_headers<T: ZByteWriterTrait>(
-        &self, writer: &mut ZWriter<T>
+        &self,
+        writer: &mut ZWriter<T>,
     ) -> Result<(), QoiEncodeErrors> {
         let expected_len = self.options.width()
             * self.options.height()
@@ -83,7 +84,7 @@ impl<'a> QoiEncoder<'a> {
 
         if self.pixel_data.len() != expected_len {
             return Err(QoiEncodeErrors::Generic(
-                "Expected length doesn't match pixels length"
+                "Expected length doesn't match pixels length",
             ));
         }
 
@@ -113,7 +114,7 @@ impl<'a> QoiEncoder<'a> {
             _ => {
                 return Err(QoiEncodeErrors::UnsupportedColorspace(
                     self.options.colorspace(),
-                    &SUPPORTED_COLORSPACES
+                    &SUPPORTED_COLORSPACES,
                 ))
             }
         };
@@ -191,7 +192,7 @@ impl<'a> QoiEncoder<'a> {
                                 QOI_OP_DIFF
                                     | vr.wrapping_add(2) << 4
                                     | vg.wrapping_add(2) << 2
-                                    | vb.wrapping_add(2)
+                                    | vb.wrapping_add(2),
                             );
                         } else if !(8..=247).contains(&vg_r)
                             && !(32..=223).contains(&vg)
@@ -242,7 +243,7 @@ mod tests {
         let pixels = std::array::from_fn::<u8, { W * H * 3 }, _>(|i| (i % 256) as u8);
         let mut encoder = QoiEncoder::new(
             &pixels,
-            EncoderOptions::new(W, H, ColorSpace::RGB, BitDepth::Eight)
+            EncoderOptions::new(W, H, ColorSpace::RGB, BitDepth::Eight),
         );
         let mut output = vec![];
         encoder.encode(&mut output).unwrap();
@@ -258,7 +259,7 @@ mod tests {
         let pixels = std::array::from_fn::<u8, { W * H * 4 }, _>(|i| (i % 256) as u8);
         let mut encoder = QoiEncoder::new(
             &pixels,
-            EncoderOptions::new(W, H, ColorSpace::RGBA, BitDepth::Eight)
+            EncoderOptions::new(W, H, ColorSpace::RGBA, BitDepth::Eight),
         );
 
         let mut output = vec![];

@@ -18,7 +18,7 @@ pub enum IColorSpace {
     YCbCr,
     RGBA,
     Luma,
-    LumaA
+    LumaA,
 }
 
 impl IColorSpace {
@@ -30,7 +30,7 @@ impl IColorSpace {
             IColorSpace::YCbCr => ColorSpace::YCbCr,
             IColorSpace::RGBA => ColorSpace::RGBA,
             IColorSpace::Luma => ColorSpace::Luma,
-            IColorSpace::LumaA => ColorSpace::LumaA
+            IColorSpace::LumaA => ColorSpace::LumaA,
         }
     }
 }
@@ -43,7 +43,7 @@ impl ValueEnum for IColorSpace {
             Self::YCbCr,
             Self::GRAYSCALE,
             Self::Luma,
-            Self::LumaA
+            Self::LumaA,
         ]
     }
 
@@ -54,7 +54,7 @@ impl ValueEnum for IColorSpace {
             Self::YCbCr => PossibleValue::new("ycbcr"),
             Self::GRAYSCALE => PossibleValue::new("grayscale"),
             Self::LumaA => PossibleValue::new("lumaA"),
-            Self::Luma => PossibleValue::new("luma")
+            Self::Luma => PossibleValue::new("luma"),
         })
     }
 }

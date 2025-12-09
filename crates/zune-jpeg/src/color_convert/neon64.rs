@@ -10,7 +10,11 @@
 //! NEON is mandatory on aarch64.
 
 #![cfg(all(feature = "neon", target_arch = "aarch64"))]
-use core::arch::aarch64::*;
+use core::arch::aarch64::{
+    uint8x16_t, uint8x16x3_t, uint8x16x4_t, vcombine_s16, vcombine_u16, vcombine_u8, vcreate_s16,
+    vdupq_n_s16, vdupq_n_s32, vdupq_n_u8, vget_low_s16, vld1q_s16, vmlal_high_laneq_s16,
+    vmlal_laneq_s16, vqmovn_u16, vqshrun_n_s32, vst3q_u8, vst4q_u8, vsubq_s16,
+};
 
 use crate::color_convert::scalar::{CB_CF, CR_CF, C_G_CB_COEF_2, C_G_CR_COEF_1, YUV_RND, Y_CF};
 
@@ -22,7 +26,7 @@ const C_1: u64 = u64::from_ne_bytes([
     CB_CF.to_ne_bytes()[0],
     CB_CF.to_ne_bytes()[1],
     C_G_CR_COEF_1.to_ne_bytes()[0],
-    C_G_CR_COEF_1.to_ne_bytes()[1]
+    C_G_CR_COEF_1.to_ne_bytes()[1],
 ]);
 const C_2: u64 = u64::from_ne_bytes([
     C_G_CB_COEF_2.to_ne_bytes()[0],
@@ -32,12 +36,14 @@ const C_2: u64 = u64::from_ne_bytes([
     0,
     0,
     0,
-    0
+    0,
 ]);
 
 #[inline(always)]
 unsafe fn ycbcr_to_rgb_baseline_no_clamp(
-    y: &[i16; 16], cb: &[i16; 16], cr: &[i16; 16]
+    y: &[i16; 16],
+    cb: &[i16; 16],
+    cr: &[i16; 16],
 ) -> (uint8x16_t, uint8x16_t, uint8x16_t) {
     // NEON has 32 registers, so it is good idea to utilize a lot of variables at once
 
@@ -115,13 +121,17 @@ unsafe fn ycbcr_to_rgb_baseline_no_clamp(
     (
         vcombine_u8(r0, r1),
         vcombine_u8(g0, g1),
-        vcombine_u8(b0, b1)
+        vcombine_u8(b0, b1),
     )
 }
 
 #[inline(always)]
 pub fn ycbcr_to_rgb_neon(
-    y: &[i16; 16], cb: &[i16; 16], cr: &[i16; 16], out: &mut [u8], offset: &mut usize
+    y: &[i16; 16],
+    cb: &[i16; 16],
+    cr: &[i16; 16],
+    out: &mut [u8],
+    offset: &mut usize,
 ) {
     // call this in another function to tell RUST to vectorize this
     // storing
@@ -134,7 +144,11 @@ pub fn ycbcr_to_rgb_neon(
 
 #[inline(always)]
 pub fn ycbcr_to_rgba_neon(
-    y: &[i16; 16], cb: &[i16; 16], cr: &[i16; 16], out: &mut [u8], offset: &mut usize
+    y: &[i16; 16],
+    cb: &[i16; 16],
+    cr: &[i16; 16],
+    out: &mut [u8],
+    offset: &mut usize,
 ) {
     unsafe {
         let (r, g, b) = ycbcr_to_rgb_baseline_no_clamp(y, cb, cr);
