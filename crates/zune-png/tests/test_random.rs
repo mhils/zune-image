@@ -93,7 +93,7 @@ fn test_animation() {
         //         .open(format!("./{i}.png"))
         //         .unwrap()
         // );
-        i += 1;
+        // i += 1;
         //let bytes = zune_png::PngEncoder::new(&output, encoder_opts).encode(c);
         // std::fs::write(format!("./{i}.png"), bytes).unwrap();
         background = Some(pix);
